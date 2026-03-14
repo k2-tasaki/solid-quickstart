@@ -1,15 +1,303 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <title>Solid App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="description" content="YUGA's App Lab — インタラクティブなWebアプリ集" />
+  <title>YUGA's App Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #0a0a0f;
+      --bg2:      #10101a;
+      --accent:   #00e5a0;
+      --accent2:  #7c3aed;
+      --text:     #e8e8f0;
+      --muted:    #6b6b88;
+      --card-bg:  #14141f;
+      --card-border: rgba(255,255,255,0.07);
+    }
 
-    <script src="/src/index.tsx" type="module"></script>
-  </body>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans JP', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content:'';
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+
+    /* ── GLOW ORBS ── */
+    .orb {
+      position:fixed; border-radius:50%; filter:blur(100px); pointer-events:none; z-index:0;
+      animation: drift 18s ease-in-out infinite;
+    }
+    .orb1 { width:500px; height:500px; background:rgba(0,229,160,0.07); top:-150px; left:-100px; animation-delay:0s; }
+    .orb2 { width:400px; height:400px; background:rgba(124,58,237,0.08); bottom:-100px; right:-80px; animation-delay:-7s; }
+    .orb3 { width:300px; height:300px; background:rgba(0,229,160,0.05); top:50%; left:60%; animation-delay:-13s; }
+    @keyframes drift {
+      0%,100%{ transform:translate(0,0) scale(1); }
+      33%    { transform:translate(30px,-40px) scale(1.05); }
+      66%    { transform:translate(-20px,30px) scale(0.95); }
+    }
+
+    /* ── LAYOUT ── */
+    .wrap { position:relative; z-index:1; max-width:960px; margin:0 auto; padding:0 24px; }
+
+    /* ── HEADER ── */
+    header {
+      position:relative; z-index:1;
+      padding: 28px 0 0;
+    }
+    .header-inner {
+      max-width:960px; margin:0 auto; padding:0 24px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .logo-mark {
+      font-family:'Syne',sans-serif; font-weight:800; font-size:1.35rem;
+      letter-spacing:.08em; color:var(--accent);
+      text-shadow: 0 0 20px rgba(0,229,160,0.5);
+    }
+    .logo-mark span { color:var(--text); opacity:.5; font-weight:700; }
+    .header-tag {
+      font-size:.72rem; color:var(--muted); letter-spacing:.14em; text-transform:uppercase;
+      border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:4px 12px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position:relative; z-index:1;
+      padding: 80px 0 60px;
+      text-align:center;
+    }
+    .hero-eyebrow {
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:.75rem; letter-spacing:.18em; text-transform:uppercase; color:var(--accent);
+      margin-bottom:24px; opacity:0;
+      animation: fadeUp .7s ease .1s forwards;
+    }
+    .hero-eyebrow::before, .hero-eyebrow::after {
+      content:''; display:block; width:28px; height:1px; background:var(--accent); opacity:.5;
+    }
+    .hero-title {
+      font-family:'Syne',sans-serif; font-weight:800;
+      font-size:clamp(2.8rem, 8vw, 5.5rem);
+      line-height:1.05; letter-spacing:-.02em;
+      background: linear-gradient(135deg, #fff 0%, var(--accent) 50%, #a78bfa 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      margin-bottom:.3em; opacity:0;
+      animation: fadeUp .7s ease .25s forwards;
+    }
+    .hero-sub {
+      font-size:clamp(.95rem,2.5vw,1.15rem); color:var(--muted); line-height:1.7;
+      max-width:480px; margin:0 auto 2em; opacity:0;
+      animation: fadeUp .7s ease .4s forwards;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(22px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      position:relative; z-index:1;
+      display:flex; align-items:center; gap:16px;
+      max-width:960px; margin:0 auto 40px; padding:0 24px;
+    }
+    .divider-label { font-size:.72rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); white-space:nowrap; }
+    .divider-line  { flex:1; height:1px; background:linear-gradient(90deg,rgba(255,255,255,.1),transparent); }
+
+    /* ── APP GRID ── */
+    .grid {
+      position:relative; z-index:1;
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(280px,100%), 1fr));
+      gap:20px;
+      padding-bottom:80px;
+    }
+
+    /* ── APP CARD ── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius:18px; overflow:hidden;
+      display:flex; flex-direction:column;
+      transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+      opacity:0; animation: fadeUp .6s ease forwards;
+      cursor:pointer; text-decoration:none; color:inherit;
+    }
+    .card:nth-child(1){ animation-delay:.55s; }
+    .card:nth-child(2){ animation-delay:.7s;  }
+    .card:nth-child(3){ animation-delay:.85s; }
+    .card:nth-child(4){ animation-delay:1.0s; }
+
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(0,229,160,.35);
+      box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(0,229,160,.15);
+    }
+    .card:active { transform:translateY(-2px); }
+
+    /* Card thumbnail area */
+    .card-thumb {
+      height:160px; position:relative; overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+      font-size:4rem;
+    }
+    .card-thumb-bg {
+      position:absolute; inset:0;
+    }
+    .card-thumb-icon {
+      position:relative; z-index:1;
+      filter: drop-shadow(0 4px 16px rgba(0,0,0,.5));
+      animation: float 3.5s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+    .card-body { padding:20px 22px 22px; flex:1; display:flex; flex-direction:column; }
+    .card-tag {
+      display:inline-block; font-size:.66rem; letter-spacing:.14em; text-transform:uppercase;
+      color:var(--accent); background:rgba(0,229,160,.1); border:1px solid rgba(0,229,160,.2);
+      border-radius:20px; padding:3px 10px; margin-bottom:10px;
+      width:fit-content;
+    }
+    .card-tag.purple { color:#a78bfa; background:rgba(124,58,237,.12); border-color:rgba(167,139,250,.2); }
+    .card-tag.blue   { color:#60a5fa; background:rgba(59,130,246,.12); border-color:rgba(96,165,250,.2); }
+    .card-tag.orange { color:#fb923c; background:rgba(251,146,60,.12); border-color:rgba(251,146,60,.2); }
+
+    .card-title {
+      font-family:'Syne',sans-serif; font-weight:700;
+      font-size:1.2rem; margin-bottom:8px; color:#fff;
+    }
+    .card-desc { font-size:.85rem; color:var(--muted); line-height:1.65; flex:1; }
+
+    .card-footer {
+      margin-top:18px; padding-top:16px;
+      border-top:1px solid rgba(255,255,255,.06);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .card-players { font-size:.75rem; color:var(--muted); display:flex; align-items:center; gap:5px; }
+    .card-arrow {
+      width:32px; height:32px; border-radius:50%;
+      background:rgba(0,229,160,.1); border:1px solid rgba(0,229,160,.25);
+      display:flex; align-items:center; justify-content:center;
+      color:var(--accent); font-size:.9rem;
+      transition: background .2s, transform .2s;
+    }
+    .card:hover .card-arrow { background:var(--accent); color:#000; transform:rotate(-45deg); }
+
+    /* Coming soon card */
+    .card.coming {
+      opacity:0.45; pointer-events:none;
+      animation-delay:1.15s;
+    }
+    .card.coming .card-thumb-icon { filter:grayscale(1) opacity(.4); animation:none; }
+    .coming-badge {
+      position:absolute; top:12px; right:12px; z-index:2;
+      font-size:.65rem; letter-spacing:.12em; text-transform:uppercase;
+      background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+      color:rgba(255,255,255,.4); border-radius:20px; padding:3px 10px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position:relative; z-index:1;
+      border-top:1px solid rgba(255,255,255,.06);
+      padding:32px 24px;
+      text-align:center;
+    }
+    .footer-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1.1rem; color:var(--accent); margin-bottom:6px; }
+    .footer-copy { font-size:.75rem; color:var(--muted); letter-spacing:.08em; }
+  </style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo-mark">YUGA<span>'s</span> App Lab</div>
+    <div class="header-tag">Web Apps</div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow">Interactive Web Apps</div>
+    <h1 class="hero-title">App Lab</h1>
+    <p class="hero-sub">YUGAが作ったWebアプリのコレクション。<br>スマホでもPCでも、すぐ遊べます。</p>
+  </div>
+</section>
+
+<!-- APPS -->
+<div class="wrap">
+  <div class="divider">
+    <span class="divider-label">All Apps</span>
+    <span class="divider-line"></span>
+  </div>
+
+  <div class="grid">
+
+    <!-- ① ハリネズミバトル -->
+    <a class="card" href="./hedgehog-battle.html">
+      <div class="card-thumb">
+        <div class="card-thumb-bg" style="background:linear-gradient(135deg,#0f2b1a,#1a3a0f);"></div>
+        <div class="card-thumb-icon">🦔</div>
+      </div>
+      <div class="card-body">
+        <span class="card-tag">対戦ゲーム</span>
+        <div class="card-title">ハリネズミバトル</div>
+        <div class="card-desc">針でつついて相手を台から落とせ！QRコードで友達のスマホとリアルタイム対戦。</div>
+        <div class="card-footer">
+          <span class="card-players">👥 2プレイヤー対応</span>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- ② Coming Soon -->
+    <div class="card coming">
+      <div class="card-thumb">
+        <div class="card-thumb-bg" style="background:linear-gradient(135deg,#1a1a2e,#16213e);"></div>
+        <div class="card-thumb-icon">🎮</div>
+        <span class="coming-badge">Coming Soon</span>
+      </div>
+      <div class="card-body">
+        <span class="card-tag purple">次回作</span>
+        <div class="card-title">新しいアプリ</div>
+        <div class="card-desc">只今開発中です。お楽しみに！</div>
+        <div class="card-footer">
+          <span class="card-players">🔧 準備中</span>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">YUGA</div>
+  <div class="footer-copy">© 2025 YUGA's App Lab. All rights reserved.</div>
+</footer>
+
+</body>
 </html>
